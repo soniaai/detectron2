@@ -92,6 +92,17 @@ def setup(args):
     default_setup(cfg, args)
     return cfg
 
+def parse_args(parser):
+    parser.add_argument("--output-dir", default="./output", help="path to output directory")
+    parser.add_argument("--train-dir", default="data/publaynet/train", help="Path to training images")
+    parser.add_argument("--train-annotations", default="data/publaynet/train/samples.json", help="Path to training annotations")
+    parser.add_argument("--eval-dir", default="data/publaynet/eval", help="Path to eval images")
+    parser.add_argument("--eval-annotations", default="data/publaynet/eval/samples.json", help="Path to eval annotations")
+    parser.add_argument("--lda-config", default="configs/DLA_mask_rcnn_R_101_FPN_3x.yaml", help="Path to the layout-specific config")
+
+    return parser.parse_args()
+
+
 
 def main(args):
     cfg = setup(args)
@@ -122,34 +133,31 @@ def main(args):
 
 
 if __name__ == "__main__":
-    args = default_argument_parser().parse_args()
-    output_dir = os.path.join('./output', datetime.datetime.now().strftime('%Y%m%dT%H%M'))
+    args = parse_args(default_argument_parser())
+    output_dir = os.path.join(args.output_dir, datetime.datetime.now().strftime('%Y%m%dT%H%M'))
     os.makedirs(output_dir, exist_ok=True)
     logger = setup_logger(output=output_dir)
-    logger.info("Command Line Args:", args)
+    print("Command Line Args:", args)
 
     register_coco_instances(
         "dla_train",  # Dataset name
         {},  # Metadata
-        "/home/lvapeab/DATASETS/publaynet/examples/samples.json",  # Json file
-        "/home/lvapeab/DATASETS/publaynet/examples"  # Image root
+        args.train_annotations,  # Json file
+        args.train_dir  # Image root
     )
 
     register_coco_instances(
-        "dla_val",
+        "dla_eval",
         {},
-        "/home/lvapeab/DATASETS/publaynet/examples/samples.json",  # Json file
-        "/home/lvapeab/DATASETS/publaynet/examples"  # Image root
+        args.eval_annotations,  # Json file
+        args.eval_dir  # Image root
     )
 
     metadata_train = MetadataCatalog.get("dla_train")
-    metadata_val = MetadataCatalog.get("dla_val")
+    metadata_val = MetadataCatalog.get("dla_eval")
 
     cfg = get_cfg()
-    # mask rcnn resnet101
-    # cfg.merge_from_file("configs/DLA_mask_rcnn_R_101_FPN_3x.yaml")
-    # mask rcnn resnext
-    cfg.merge_from_file("configs/DLA_mask_rcnn_X_101_32x8d_FPN_3x.yaml")
+    cfg.merge_from_file(args.lda_config)
 
     cfg.OUTPUT_DIR = output_dir
 

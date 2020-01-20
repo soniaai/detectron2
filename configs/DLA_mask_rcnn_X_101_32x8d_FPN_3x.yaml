@@ -12,7 +12,7 @@ MODEL:
     DEPTH: 101
 DATASETS:
   TRAIN: ("dla_train",)
-  TEST: ("dla_val",)
+  TEST: ("dla_eval",)
 SOLVER:
   STEPS: (210000, 250000)
   MAX_ITER: 125500
