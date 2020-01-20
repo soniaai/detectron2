@@ -99,7 +99,7 @@ if __name__ == "__main__":
                                 :]
                 pred_class = int(classes[i])
                 score = float(scores[i])
-                filename = '{}_{}_class_{}_score_{}.png'.format(os.path.basename(path), i, pred_class, score)
+                filename = '{}_{}_class_{}_score_{}.png'.format(os.path.basename(path)[:-4], i, pred_class, score)
                 out_filename = os.path.join(args.output, filename)
                 imageio.imwrite(out_filename, cropped_image)
 
