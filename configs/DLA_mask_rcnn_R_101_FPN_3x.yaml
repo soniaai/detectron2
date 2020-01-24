@@ -10,11 +10,40 @@ DATASETS:
   TRAIN: ("dla_train",)
   TEST: ("dla_eval",)
 SOLVER:
-  STEPS: (210000, 250000)
-  MAX_ITER: 40000
+  STEPS: (21000, 25000)
+  MAX_ITER: 100000
+  # Number of images per batch across all machines.
   IMS_PER_BATCH: 2
   BASE_LR: 0.0009
+  CHECKPOINT_PERIOD: 10000
+#  Defaults:
+#
+#  # See detectron2/solver/build.py for LR scheduler options
+#  _C.SOLVER.LR_SCHEDULER_NAME = "WarmupMultiStepLR"
+#  _C.SOLVER.MAX_ITER = 40000
+#  _C.SOLVER.MOMENTUM = 0.9
+#  _C.SOLVER.WEIGHT_DECAY = 0.0001
+#  # The weight decay that's applied to parameters of normalization layers
+#  # (typically the affine transformation)
+#  _C.SOLVER.WEIGHT_DECAY_NORM = 0.0
+#  _C.SOLVER.GAMMA = 0.1
+#  # The iteration number to decrease learning rate by GAMMA.
+#  _C.SOLVER.STEPS = (30000,)
+
+#  _C.SOLVER.WARMUP_FACTOR = 1.0 / 1000
+#  _C.SOLVER.WARMUP_ITERS = 1000
+#  _C.SOLVER.WARMUP_METHOD = "linear"
+#
+#  # Detectron v1 (and previous detection code) used a 2x higher LR and 0 WD for
+#  # biases. This is not useful (at least for recent models). You should avoid
+#  # changing these and they exist only to reproduce Detectron v1 training if
+#  # desired.
+#  _C.SOLVER.BIAS_LR_FACTOR = 1.0
+#  _C.SOLVER.WEIGHT_DECAY_BIAS = _C.SOLVER.WEIGHT_DECAY
+
+
 DATALOADER:
   NUM_WORKERS: 8
 TEST:
-  EVAL_PERIOD: 1000
+  EVAL_PERIOD: 10000
+VIS_PERIOD: 500

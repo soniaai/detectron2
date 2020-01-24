@@ -8,6 +8,7 @@ import torch
 import cv2
 import tqdm
 from detectron2.config import get_cfg
+from detectron2.data import DatasetCatalog
 from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
 import imageio
@@ -51,6 +52,12 @@ def get_parser():
         help="Minimum score for instance predictions to be shown",
     )
     parser.add_argument(
+        "--classes",
+        type=int,
+        nargs='*',
+        help="Classes to extract. Leave empty to extract all classes.",
+    )
+    parser.add_argument(
         "--opts",
         help="Modify config options using the command-line 'KEY VALUE' pairs",
         default=[],
@@ -66,7 +73,6 @@ if __name__ == "__main__":
     logger.info("Arguments: " + str(args))
 
     cfg = setup_cfg(args)
-
     demo = VisualizationDemo(cfg)
 
     if args.input:
@@ -85,21 +91,32 @@ if __name__ == "__main__":
             )
 
             os.makedirs(args.output, exist_ok=True)
-            out_filename = os.path.join(args.output, os.path.basename(path))
-            visualized_output.save(out_filename)
+            img_outfilename = os.path.join(args.output, os.path.basename(path))
+            visualized_output.save(img_outfilename)
 
             boxes = predictions['instances'].get('pred_boxes').tensor.to('cpu')
             classes = predictions['instances'].get('pred_classes').to('cpu')
             scores = predictions['instances'].get('scores').to('cpu')
             for i, box in enumerate(boxes):
                 # Each box is (x1, y1, x2, y2).
-                cropped_image = img[
-                                int(box[1]):int(box[3]),
-                                int(box[0]):int(box[2]),
-                                :]
                 pred_class = int(classes[i])
-                score = float(scores[i])
-                filename = '{}_{}_class_{}_score_{}.png'.format(os.path.basename(path)[:-4], i, pred_class, score)
-                out_filename = os.path.join(args.output, filename)
-                imageio.imwrite(out_filename, cropped_image)
+                if not args.classes or pred_class in args.classes:
+                    cropped_image = img[  # The image is (heigth, width) i.e. (y, x).
+                                    int(box[1]):int(box[3]),
+                                    int(box[0]):int(box[2]),
+                                    :]
+                    score = float(scores[i])
+                    img_filename = '{}_{}_class_{}_score_{}.png'.format(os.path.basename(path)[:-4], i, pred_class, score)
+                    class_filename = '{}_{}_class_{}_score_{}.txt'.format(os.path.basename(path)[:-4], i, pred_class, score)
+                    img_outfilename = os.path.join(args.output, img_filename)
+                    class_outfilename = os.path.join(args.output, class_filename)
+                    imageio.imwrite(img_outfilename, cropped_image)
+                    with open(class_outfilename, 'w') as f:
+                        # Save image dimensions as width, height (x, y)
+                        f.write(str(img.shape[1]) + "," + str(img.shape[0]) + "-")
+                        f.write(",".join([
+                            str(int(box[0])),
+                            str(int(box[1])),
+                            str(int(box[2])),
+                            str(int(box[3]))]))
 
