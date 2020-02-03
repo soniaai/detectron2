@@ -1,39 +1,42 @@
 _BASE_: "Base-RCNN-FPN.yaml"
 MODEL:
-  MASK_ON: True
-  WEIGHTS: "detectron2://COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x/139653917/model_final_2d9806.pkl"
-  PIXEL_STD: [57.375, 57.120, 58.395]
-  ROI_HEADS:
-    NUM_CLASSES: 5
+  WEIGHTS: "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x/138205316/model_final_a3ec72.pkl"
+  MASK_ON: False
   RESNETS:
-    STRIDE_IN_1X1: False  # this is a C2 model
-    NUM_GROUPS: 32
-    WIDTH_PER_GROUP: 8
     DEPTH: 101
+  ROI_HEADS:
+    NUM_CLASSES: 1
+  RPN:
+    PRE_NMS_TOPK_TRAIN: 100  # Per FPN level
+    PRE_NMS_TOPK_TEST: 4  # Per FPN level
+    # Detectron1 uses 2000 proposals per-batch,
+    # (See "modeling/rpn/rpn_outputs.py" for details of this legacy issue)
+    # which is approximately 1000 proposals per-image since the default batch size for FPN is 2.
+    POST_NMS_TOPK_TRAIN: 10
+    POST_NMS_TOPK_TEST: 4
 DATASETS:
-  TRAIN: ("dla_train",)
-  TEST: ("dla_eval",)
+  TRAIN: ("funsd_train",)
+  TEST: ("funsd_eval",)
 SOLVER:
   STEPS: (21000, 25000)
   MAX_ITER: 100000
   # Number of images per batch across all machines.
   IMS_PER_BATCH: 2
   BASE_LR: 0.0009
-  CHECKPOINT_PERIOD: 10000
+  CHECKPOINT_PERIOD: 500
+  WEIGHT_DECAY: 0.0001
+
+
 #  Defaults:
 #
 #  # See detectron2/solver/build.py for LR scheduler options
 #  _C.SOLVER.LR_SCHEDULER_NAME = "WarmupMultiStepLR"
 #  _C.SOLVER.MAX_ITER = 40000
 #  _C.SOLVER.MOMENTUM = 0.9
-#  _C.SOLVER.WEIGHT_DECAY = 0.0001
-#  # The weight decay that's applied to parameters of normalization layers
-#  # (typically the affine transformation)
 #  _C.SOLVER.WEIGHT_DECAY_NORM = 0.0
 #  _C.SOLVER.GAMMA = 0.1
 #  # The iteration number to decrease learning rate by GAMMA.
 #  _C.SOLVER.STEPS = (30000,)
-
 #  _C.SOLVER.WARMUP_FACTOR = 1.0 / 1000
 #  _C.SOLVER.WARMUP_ITERS = 1000
 #  _C.SOLVER.WARMUP_METHOD = "linear"
@@ -49,5 +52,6 @@ SOLVER:
 DATALOADER:
   NUM_WORKERS: 8
 TEST:
-  EVAL_PERIOD: 10000
-VIS_PERIOD: 500
+  EVAL_PERIOD: 500
+  DETECTIONS_PER_IMAGE: 4
+VIS_PERIOD: 100

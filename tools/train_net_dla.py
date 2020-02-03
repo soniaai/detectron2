@@ -94,11 +94,12 @@ def setup(args):
 
 def parse_args(parser):
     parser.add_argument("--output-dir", default="./output", help="path to output directory")
+    parser.add_argument("--dataset-name", default="lda", help="Dataset name")
     parser.add_argument("--train-dir", default="data/publaynet/train", help="Path to training images")
     parser.add_argument("--train-annotations", default="data/publaynet/train/samples.json", help="Path to training annotations")
     parser.add_argument("--eval-dir", default="data/publaynet/eval", help="Path to eval images")
     parser.add_argument("--eval-annotations", default="data/publaynet/eval/samples.json", help="Path to eval annotations")
-    parser.add_argument("--lda-config", default="configs/DLA_mask_rcnn_R_101_FPN_3x.yaml", help="Path to the layout-specific config")
+    parser.add_argument("--config", default="configs/DLA_mask_rcnn_R_101_FPN_3x.yaml", help="Path to the layout-specific config")
 
     return parser.parse_args()
 
@@ -140,24 +141,24 @@ if __name__ == "__main__":
     print("Command Line Args:", args)
 
     register_coco_instances(
-        "dla_train",  # Dataset name
+        args.dataset_name + "_train",  # Dataset name
         {},  # Metadata
         args.train_annotations,  # Json file
         args.train_dir  # Image root
     )
 
     register_coco_instances(
-        "dla_eval",
+        args.dataset_name + "_eval",
         {},
         args.eval_annotations,  # Json file
         args.eval_dir  # Image root
     )
 
-    metadata_train = MetadataCatalog.get("dla_train")
-    metadata_val = MetadataCatalog.get("dla_eval")
+    metadata_train = MetadataCatalog.get(args.dataset_name + "_train")
+    metadata_val = MetadataCatalog.get(args.dataset_name + "_eval")
 
     cfg = get_cfg()
-    cfg.merge_from_file(args.lda_config)
+    cfg.merge_from_file(args.config)
 
     cfg.OUTPUT_DIR = output_dir
 
